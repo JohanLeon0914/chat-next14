@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import { useForm, Controller } from 'react-hook-form';
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
-import firebase_app from '../../firebaseconfig'
+import firebase_app, { db } from '../../firebaseconfig'
+import { useRouter } from 'next/navigation'
+import { addDoc, collection } from 'firebase/firestore';
 
 const auth = getAuth(firebase_app);
 
@@ -15,13 +17,24 @@ type FormValues = {
 
 const RegisterForm = () => {
   const { control, handleSubmit, getValues, formState: { errors } } = useForm<FormValues>();
+  const usersCollection = collection(db, "users")
+  const router = useRouter()
 
-  const signUp = async(email:string, password:string) => {
-    let res = await createUserWithEmailAndPassword(auth, email, password)
-    if(res.user) {
-      
+  const signUp = async (email: string, password: string) => {
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      if (res.user) {
+        await addDoc(usersCollection, {
+          id: res.user.uid,
+          email: res.user.email
+        })
+        localStorage.setItem('user', JSON.stringify(res.user));
+        router.push('/login', { scroll: false })
+      }
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
     }
-  }
+  };
 
   const onSubmit = (data: FormValues) => {
     console.log(data);

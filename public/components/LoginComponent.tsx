@@ -24,11 +24,11 @@ const LoginComponent = () => {
         password
       );
       if(userCredential.user){
+        localStorage.setItem('user', JSON.stringify(userCredential.user));
         router.push('/dashboard', { scroll: false })
       } 
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      // Puedes mostrar un mensaje de error al usuario.
     }
   };
 
